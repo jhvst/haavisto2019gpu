@@ -1,9 +1,12 @@
-[package]
-name = "vulkano"
-version = "0.1.0"
-authors = ["Juuso Haavisto <juuso@mail.com>"]
+[workspace]
+members = [
+    "examples",
+    "vk-sys",
+    "vulkano",
+    "vulkano-shaders",
+    "vulkano-win"
+]
 
-[dependencies]
-vulkano = "0.16.0"
-vulkano-shaders = "0.16.0"
-time = "*"
+exclude = [
+    "www"
+]

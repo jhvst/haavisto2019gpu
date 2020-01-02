@@ -13,8 +13,6 @@
 // been more or more used for general-purpose operations as well. This is called "General-Purpose
 // GPU", or *GPGPU*. This is what this example demonstrates.
 
-#[macro_use]
-extern crate vulkano;
 use vulkano::buffer::{BufferUsage, CpuAccessibleBuffer};
 use vulkano::command_buffer::AutoCommandBufferBuilder;
 use vulkano::descriptor::descriptor_set::PersistentDescriptorSet;
@@ -131,9 +129,9 @@ void main() {
         // Finish building the command buffer by calling `build`.
         .build().unwrap();
 
+    let start = PreciseTime::now();
     // Let's execute this command buffer now.
     // To do so, we TODO: this is a bit clumsy, probably needs a shortcut
-    let start = PreciseTime::now();
     let future = sync::now(device.clone())
         .then_execute(queue.clone(), command_buffer).unwrap()
 
