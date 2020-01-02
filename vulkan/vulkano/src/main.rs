@@ -18,14 +18,12 @@ extern crate vulkano;
 use vulkano::buffer::{BufferUsage, CpuAccessibleBuffer};
 use vulkano::command_buffer::AutoCommandBufferBuilder;
 use vulkano::descriptor::descriptor_set::PersistentDescriptorSet;
+use vulkano::descriptor::PipelineLayoutAbstract;
 use vulkano::device::{Device, DeviceExtensions};
 use vulkano::instance::{Instance, InstanceExtensions, PhysicalDevice};
 use vulkano::pipeline::ComputePipeline;
 use vulkano::sync::GpuFuture;
 use vulkano::sync;
-
-#[macro_use]
-extern crate vulkano_shaders;
 
 use std::sync::Arc;
 
@@ -98,8 +96,6 @@ void main() {
         ComputePipeline::new(device.clone(), &shader.main_entry_point(), &()).unwrap()
     });
 
-    let start = PreciseTime::now();
-
     // We start by creating the buffer that will store the data.
     let data_buffer = {
         // Iterator that produces the data.
@@ -116,7 +112,8 @@ void main() {
     //
     // If you want to run the pipeline on multiple different buffers, you need to create multiple
     // descriptor sets that each contain the buffer you want to run the shader on.
-    let set = Arc::new(PersistentDescriptorSet::start(pipeline.clone(), 0)
+    let layout = pipeline.layout().descriptor_set_layout(0).unwrap();
+    let set = Arc::new(PersistentDescriptorSet::start(layout.clone())
         .add_buffer(data_buffer.clone()).unwrap()
         .build().unwrap()
     );
@@ -136,6 +133,7 @@ void main() {
 
     // Let's execute this command buffer now.
     // To do so, we TODO: this is a bit clumsy, probably needs a shortcut
+    let start = PreciseTime::now();
     let future = sync::now(device.clone())
         .then_execute(queue.clone(), command_buffer).unwrap()
 
@@ -164,7 +162,8 @@ void main() {
     // The call to `read()` would return an error if the buffer was still in use by the GPU.
     let data_buffer_content = data_buffer.read().unwrap();
     let end = PreciseTime::now();
-    println!("{} seconds", start.to(end));
+
+    println!("{}", start.to(end));
 
     for n in 0 .. 65536u32 {
         assert_eq!(data_buffer_content[n as usize], n * 12);
