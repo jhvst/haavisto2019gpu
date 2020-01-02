@@ -26,6 +26,9 @@ use vulkano::swapchain;
 use vulkano::sync::GpuFuture;
 use vulkano::sync;
 
+extern crate time;
+use time::PreciseTime;
+
 use vulkano_win::VkSurfaceBuild;
 
 use winit::Window;
@@ -229,7 +232,7 @@ fn main() {
             match ev {
                 winit::Event::WindowEvent { event: winit::WindowEvent::CloseRequested, .. } => done = true,
                 winit::Event::WindowEvent { event: winit::WindowEvent::Resized(_), .. } => recreate_swapchain = true,
-                _ => ()
+                _ => (recreate_swapchain = true)
             }
         });
         if done { return; }
@@ -244,6 +247,8 @@ fn window_size_dependent_setup(
     images: &[Arc<SwapchainImage<Window>>],
     render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 ) -> (Arc<dyn GraphicsPipelineAbstract + Send + Sync>, Vec<Arc<dyn FramebufferAbstract + Send + Sync>> ) {
+    let start = PreciseTime::now();
+
     let dimensions = images[0].dimensions();
 
     let depth_buffer = AttachmentImage::transient(device.clone(), dimensions, Format::D16Unorm).unwrap();
@@ -276,6 +281,9 @@ fn window_size_dependent_setup(
         .render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
         .build(device.clone())
         .unwrap());
+
+        let end = PreciseTime::now();
+        println!("{}", start.to(end));
 
     (pipeline, framebuffers)
 }
